@@ -79,7 +79,7 @@ class LdapUserProvider implements UserProviderInterface
 
     public function loadUser($username, $user)
     {
-        $password = isset($user['userpassword']) ? $user['userpassword'] : null;
+        $password = isset($user['userpassword']) ? array_shift($user['userpassword']) : null;
 
         $roles = $this->defaultRoles;
 
