@@ -12,6 +12,7 @@
 namespace Symfony\Component\Security\Core\User;
 
 use Symfony\Component\Ldap\Entry;
+use Symfony\Component\Security\Core\Exception\AuthenticationServiceException;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Ldap\Exception\ConnectionException;
@@ -88,7 +89,7 @@ class LdapUserProvider implements UserProviderInterface
             throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', get_class($user)));
         }
 
-        return new User($user->getUsername(), null, $user->getRoles());
+        return new User($user->getUsername(), $user->getPassword(), $user->getRoles());
     }
 
     /**
@@ -101,6 +102,11 @@ class LdapUserProvider implements UserProviderInterface
 
     private function loadUser($username, Entry $entry)
     {
-        return new User($username, $entry->getAttribute('userpassword'), $this->defaultRoles);
+	$passwordArray = $entry->getAttribute('userpassword');
+	if(empty($passwordArray)) {
+	    throw new AuthenticationServiceException("User password is null");
+	}
+
+        return new User($username, array_shift($passwordArray), $this->defaultRoles);
     }
 }
